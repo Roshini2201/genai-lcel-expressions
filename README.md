@@ -1,20 +1,103 @@
-## Design and Implementation of LangChain Expression Language (LCEL) Expressions
+# Design and Implementation of LangChain Expression Language (LCEL) Expressions
 
-### AIM:
+## AIM:
 To design and implement a LangChain Expression Language (LCEL) expression that utilizes at least two prompt parameters and three key components (prompt, model, and output parser), and to evaluate its functionality by analyzing relevant examples of its application in real-world scenarios.
 
-### PROBLEM STATEMENT:
+## PROBLEM STATEMENT: 
+Design an LCEL pipeline using LangChain with at least two dynamic prompt parameters.  Integrate prompt, model, and output parser components to form a complete expression.  Evaluate its functionality through real-world query-response scenarios.
 
-### DESIGN STEPS:
+## DESIGN STEPS:
 
-#### STEP 1:
+#### STEP 1: Setup API and Environment: Load environment variables using dotenv and set openai.api_key from the local environment.
 
-#### STEP 2:
+#### STEP 2: Create Prompt and Model: Use LangChain to define a ChatPromptTemplate and initialize ChatOpenAI for text generation.
 
-#### STEP 3:
+#### STEP 3: Build a Retrieval System: Store predefined texts in DocArrayInMemorySearch with OpenAIEmbeddings and create a retriever.
 
-### PROGRAM:
+#### STEP 4: Define Question-Answering Chain: Use RunnableMap to fetch relevant documents and pass them to a chat model for responses.
 
-### OUTPUT:
+#### STEP 5: Invoke the Chain: Run chain.invoke() with a question to retrieve context-based answers using the LangChain pipeline.
 
-### RESULT:
+## PROGRAM:
+<h3> Name: NARMADHA SREE S</h3>
+<H3> Register Number: 212223240105</H3>
+
+### LangChain Expression Language (LCEL)
+```python
+
+!pip install -qU langchain langchain_google_genai
+
+
+import os
+from langchain.prompts import ChatPromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.schema.output_parser import StrOutputParser
+
+
+GOOGLE_API_KEY = "AIzaSyChL3CmyEpJnCIkuOqSEmOWjv5XHdySSIE"
+```
+### Simple Chain
+```python
+prompt = ChatPromptTemplate.from_template("tell me a short joke about {topic}")
+model = ChatGoogleGenerativeAI(model="gemini-2.5-pro", api_key=GOOGLE_API_KEY)
+output_parser = StrOutputParser()
+chain = prompt | model | output_parser
+
+
+response = chain.invoke({"topic": "Cyber Security"})
+print("Response from Gemini API:\n", response)
+```
+
+### Complex Chain
+```python
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import DocArrayInMemorySearch
+
+vectorstore = DocArrayInMemorySearch.from_texts(
+    ["Tharun lives at Poonamallee", "SEC stands for Saveetha Engineering College"],
+    embedding=OpenAIEmbeddings()
+)
+retriever = vectorstore.as_retriever()
+
+retriever.get_relevant_documents("where does Tharun live?")
+
+retriever.get_relevant_documents("what does SEC stand for?")
+
+template = """Answer the question based only on the following context:
+{context}
+
+Question: {question}
+"""
+prompt = ChatPromptTemplate.from_template(template)
+
+from langchain.schema.runnable import RunnableMap
+
+chain = RunnableMap({
+    "context": lambda x: retriever.get_relevant_documents(x["question"]),
+    "question": lambda x: x["question"]
+}) | prompt | model | output_parser
+
+chain.invoke({"question": "where does Tharun live?"})
+
+inputs = RunnableMap({
+    "context": lambda x: retriever.get_relevant_documents(x["question"]),
+    "question": lambda x: x["question"]
+})
+
+inputs.invoke({"question": "what does SEC stand for?"})
+```
+
+
+## OUTPUT:
+### Simple Chain 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fe25544f-8b4c-4451-9306-d4ae76c604a1" />
+
+
+
+### Complex Chain
+<img width="1072" height="83" alt="Screenshot 2025-09-19 112651" src="https://github.com/user-attachments/assets/2d09d22f-fc27-4f37-b313-afbec009db75" />
+
+
+
+## RESULT: 
+The implemented LCEL expression takes at least two prompt parameters, processes them using a model, and formats the output with a parser, demonstrating its effectiveness through real-world examples.
